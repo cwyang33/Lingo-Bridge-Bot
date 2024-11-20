@@ -35,44 +35,45 @@ app.post('/callback', line.middleware(config), (req, res) => {
 
 // event handler
 async function handleEvent(event) {
-  if (event.type !== 'message' || event.message.type !== 'text') {
-    // ignore non-text-message event
-    return Promise.resolve(null);
+  try {
+    if (event.type !== 'message' || event.message.type !== 'text') {
+      // ignore non-text-message event
+      return Promise.resolve(null);
+    }
+
+    const userInput = event.message.text.trim()
+    //console.log("handleEvent $$$ gpt-3.5");
+    const messages = [
+      {
+        role: 'user',
+        content: userInput,
+      },
+      {
+        role: 'system',
+        content: 'You are a helpful assistant.',
+      },
+    ]
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      temperature: 1,
+      messages: messages,
+      // chatgpt會用token計費，所以非必要不要設太長
+      max_tokens: 200,
+    });
+    
+    // create a echoing text message
+    const echo = { type: 'text', text: completion.choices[0].message.content || '抱歉，我沒有話可說了。' }
+    
+    // use reply API
+    return client.replyMessage({
+      replyToken: event.replyToken,
+      messages: [echo],
+    })
+  } catch (err) {
+    console.log(err)
   }
-
-  const userInput = event.message.text.trim()
-  //console.log("handleEvent $$$ gpt-3.5");
-  const messages = [
-    {
-      role: 'user',
-      content: userInput,
-    },
-    {
-      role: 'system',
-      content: 'You are a helpful assistant.',
-    },
-  ]
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    temperature: 1,
-    messages: messages,
-    // chatgpt會用token計費，所以非必要不要設太長
-    max_tokens: 200,
-  });
-  
-  // create a echoing text message
-  const echo = { type: 'text', text: completion.choices[0].message.content || '抱歉，我沒有話可說了。' }
-  
-  // use reply API
-  return client.replyMessage({
-    replyToken: event.replyToken,
-    messages: [echo],
-  })
-} catch (err) {
-  console.log(err)
 }
-
 // listen on port
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
