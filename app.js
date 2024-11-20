@@ -40,25 +40,38 @@ async function handleEvent(event) {
     return Promise.resolve(null);
   }
 
-  console.log("handleEvent $$$ gpt-3.5");
+  const userInput = event.message.text.trim()
+  //console.log("handleEvent $$$ gpt-3.5");
+  const messages = [
+    {
+      role: 'user',
+      content: userInput,
+    },
+    {
+      role: 'system',
+      content: 'You are a helpful assistant.',
+    },
+  ]
 
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
-    messages: [{
-      role: 'user',
-      content: event.message.text,
-    }],
+    temperature: 1,
+    messages: messages,
+    // chatgpt會用token計費，所以非必要不要設太長
     max_tokens: 200,
   });
   
   // create a echoing text message
-  const echo = { type: 'text', text: choices.message.content.trim() || '抱歉，我沒有話可說了。' };
-
-
+  const echo = { type: 'text', text: completion.choices[0].message.content || '抱歉，我沒有話可說了。' }
+  
   // use reply API
-  return client.replyMessage(event.replyToken, echo);
+  return client.replyMessage({
+    replyToken: event.replyToken,
+    messages: [echo],
+  })
+} catch (err) {
+  console.log(err)
 }
-
 
 // listen on port
 const port = process.env.PORT || 3000;
