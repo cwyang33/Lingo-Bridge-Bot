@@ -63,12 +63,12 @@ async function handleEvent(event) {
     });
     
     // create a echoing text message
-    const echo = { type: 'text', text: completion.choices[0].message.content ||    
+    const echo = { type: 'text', text: completion.choices[0].message.content || 'No Comment!!'   }
     // use reply API
     return client.replyMessage({
       replyToken: event.replyToken,
       messages: [echo],
-    })}
+    })
   } catch (err) {
     console.log(err)
   }
