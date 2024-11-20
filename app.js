@@ -2,12 +2,11 @@ require('dotenv').config();
 
 const express = require('express');
 const line = require('@line/bot-sdk');
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require('openai')
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+const openai = new OpenAI({  
+  apiKey: process.env.OPEN_AI_LINE_SECRET 
+})
 
 // create LINE SDK config from env variables
 const config = {
@@ -43,7 +42,7 @@ async function handleEvent(event) {
 
   console.log("handleEvent $$$ gpt-3.5");
 
-  const completion = await openai.createChatCompletion({
+  const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [{
       role: 'user',
